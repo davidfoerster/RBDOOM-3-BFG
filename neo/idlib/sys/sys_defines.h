@@ -252,7 +252,7 @@ bulk of the codebase, so it is the best place for analyze pragmas.
 		template <class T> inline void ignoreReturnValue( const T& ) { }
 	}
 #else
-	static inline void ignoreReturnValue( int ) { }
+	static inline void ignoreReturnValue( int __ignored ) { (void) __ignored; }
 #endif
 
 #define MAX_TYPE( x )			( ( ( ( 1 << ( ( sizeof( x ) - 1 ) * 8 - 1 ) ) - 1 ) << 8 ) | 255 )
