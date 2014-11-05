@@ -56,21 +56,32 @@ Sys_EXEPath
 */
 const char* Sys_EXEPath()
 {
-	static char	buf[ 1024 ];
-	idStr		linkpath;
-	int			len;
-	
-	buf[ 0 ] = '\0';
-	sprintf( linkpath, "/proc/%d/exe", getpid() );
-	len = readlink( linkpath.c_str(), buf, sizeof( buf ) );
-	if( len == -1 )
+	static char *exePath = NULL;
+	if( exePath )
+		return exePath;
+
+	/*
+	 * Unfortunately procfs entries usually report to have size 0, so we cannot
+	 * lstat(2) to determine the right size and need to rely on probing with
+	 * readlink(2) until it places less than bufsize bytes in the buffer.
+	 */
+	ssize_t len = 0;
+	for( size_t bufsize = 1 << 8; len >= 0 && bufsize <= 1 << 20; bufsize <<= 1 )
 	{
-		Sys_Printf( "couldn't stat exe path link %s\n", linkpath.c_str() );
-		// RB: fixed array subscript is below array bounds
-		buf[ 0 ] = '\0';
-		// RB end
+		char *buf = new char[ bufsize ];
+		len = readlink( "/proc/self/exe", buf, bufsize );
+		if( len >= 0 && static_cast<size_t>( len ) < bufsize )
+		{
+			buf[ len ] = '\0';
+			exePath = buf;
+			return buf;
+		}
+		delete[] buf;
 	}
-	return buf;
+
+	Sys_Printf( "couldn't read exe path link: %s\n",
+		( len >= 0 ) ? strerror( errno ) : "Maximum buffer length exceeded" );
+	return NULL;
 }
 
 /*
