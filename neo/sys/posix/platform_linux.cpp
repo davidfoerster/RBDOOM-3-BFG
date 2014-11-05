@@ -169,8 +169,7 @@ numCPUPackages		- the total number of packages (physical processors)
 void Sys_CPUCount( int& numLogicalCPUCores, int& numPhysicalCPUCores, int& numCPUPackages )
 {
 	static bool		init = false;
-	static double	ret;
-	
+
 	static int		s_numLogicalCPUCores;
 	static int		s_numPhysicalCPUCores;
 	static int		s_numCPUPackages;
