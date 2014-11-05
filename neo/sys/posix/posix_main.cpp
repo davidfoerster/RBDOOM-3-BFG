@@ -688,11 +688,7 @@ Posix_Cwd
 const char* Posix_Cwd()
 {
 	static char cwd[MAX_OSPATH];
-	
-	getcwd( cwd, sizeof( cwd ) - 1 );
-	cwd[MAX_OSPATH - 1] = 0;
-	
-	return cwd;
+	return getcwd( cwd, sizeof( cwd ) );
 }
 
 /*
