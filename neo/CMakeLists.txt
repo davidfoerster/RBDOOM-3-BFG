@@ -22,13 +22,13 @@ option(ONATIVE
 		"Optimize for the host CPU" ON)
 
 option(USE_SYSTEM_ZLIB
-                "Use the system zlib instead of the bundled one" OFF)
+                "Use the system zlib instead of the bundled one" ON)
 
 option(USE_SYSTEM_LIBPNG
-                "Use the system libpng instead of the bundled one" OFF)
+                "Use the system libpng instead of the bundled one" ON)
 
 option(USE_SYSTEM_LIBJPEG
-                "Use the system libjpeg instead of the bundled one" OFF)
+                "Use the system libjpeg instead of the bundled one" ON)
 
 if(UNIX)
 	set(OPENAL TRUE)
