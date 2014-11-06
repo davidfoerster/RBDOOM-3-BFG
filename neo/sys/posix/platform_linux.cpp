@@ -279,12 +279,8 @@ if the command contains spaces, system() is used. Otherwise the more straightfor
 */
 void Sys_DoStartProcess( const char* exeName, bool dofork )
 {
-	bool use_system = false;
-	if( strchr( exeName, ' ' ) )
-	{
-		use_system = true;
-	}
-	else
+	bool use_system = strchr( exeName, ' ' ) != NULL;
+	if( !use_system )
 	{
 		// set exec rights when it's about a single file to execute
 		struct stat buf;
@@ -292,54 +288,49 @@ void Sys_DoStartProcess( const char* exeName, bool dofork )
 		{
 			printf( "stat %s failed: %s\n", exeName, strerror( errno ) );
 		}
-		else
+		else if ( S_ISREG( buf.st_mode ) && !( buf.st_mode & S_IXUSR ) )
 		{
 			if( chmod( exeName, buf.st_mode | S_IXUSR ) == -1 )
 			{
-				printf( "cmod +x %s failed: %s\n", exeName, strerror( errno ) );
+				printf( "chmod +x %s failed: %s\n", exeName, strerror( errno ) );
 			}
 		}
 	}
 	if( dofork )
 	{
+		fflush( stdout );
 		switch( fork() )
 		{
-			case -1:
-				// main thread
-				break;
 			case 0:
+				// child thread
+				break;
+			case -1:
+				printf( "fork failed: %s\n", strerror( errno ) );
+				return;
+			default:
+				// main thread
+				return;
+		}
+	}
+
+	printf( "execl `%s\"\n", exeName );
 				if( use_system )
 				{
-					printf( "system %s\n", exeName );
-					system( exeName );
-					_exit( 0 );
+		execl( "/bin/sh", "/bin/sh", "-c", exeName, NULL );
 				}
 				else
 				{
-					printf( "execl %s\n", exeName );
 					execl( exeName, exeName, NULL );
+	}
 					printf( "execl failed: %s\n", strerror( errno ) );
+	if( dofork )
+	{
+		fclose( stdout );
 					_exit( -1 );
 				}
-				break;
-		}
-	}
 	else
 	{
-		if( use_system )
-		{
-			printf( "system %s\n", exeName );
-			system( exeName );
-			sleep( 1 );	// on some systems I've seen that starting the new process and exiting this one should not be too close
-		}
-		else
-		{
-			printf( "execl %s\n", exeName );
-			execl( exeName, exeName, NULL );
-			printf( "execl failed: %s\n", strerror( errno ) );
-		}
-		// terminate
-		_exit( 0 );
+		exit( -1 );
 	}
 }
 
