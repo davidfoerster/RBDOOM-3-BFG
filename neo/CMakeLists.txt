@@ -18,6 +18,9 @@ option(OPENAL
 option(FFMPEG
 		"Use FMPEG to render Bink videos" ON)
 
+option(ONATIVE
+		"Optimize for the host CPU" OFF)
+
 if(UNIX)
 	set(OPENAL TRUE)
 endif()
@@ -67,6 +70,10 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 		set(my_warn_flags "${my_warn_flags} -Wno-local-type-template-args -Wno-unknown-warning-option -Wno-inline-new-delete")
 	endif()
 	
+	if(NOT CMAKE_CROSSCOMPILING AND ONATIVE)
+		add_definitions(-march=native)
+	endif()
+
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -O0 -ggdb -fno-strict-aliasing ${my_warn_flags}")
 	#set(CMAKE_C_FLAGS_DEBUGALL "${CMAKE_C_FLAGS_DEBUGALL} -g -ggdb -D_DEBUG -fno-strict-aliasing ${my_warn_flags}")
 	#set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_PROFILE} -g -ggdb -D_DEBUG -O1 -fno-omit-frame-pointer -fno-strict-aliasing ${my_warn_flags}")
@@ -1048,9 +1055,9 @@ set(RBDOOM3_INCLUDES
 			${DOOMCLASSIC_INCLUDES}
 			${TIMIDITY_INCLUDES}
 			
-			#${COMPILER_INCLUDES}
-			#${COMPILER_AAS_INCLUDES} ${COMPILER_AAS_SOURCES}
-			#${COMPILER_DMAP_INCLUDES} ${COMPILER_DMAP_SOURCES}
+			${COMPILER_INCLUDES}
+			${COMPILER_AAS_INCLUDES} ${COMPILER_AAS_SOURCES}
+			${COMPILER_DMAP_INCLUDES} ${COMPILER_DMAP_SOURCES}
 			#${COMPILER_RENDERBUMP_INCLUDES} ${COMPILER_RENDERBUMP_SOURCES}
 			#${COMPILER_ROQVQ_INCLUDES} ${COMPILER_ROQVQ_SOURCES}
 			)
@@ -1083,8 +1090,8 @@ set(RBDOOM3_SOURCES
 			${DOOMCLASSIC_SOURCES}
 			${TIMIDITY_SOURCES}
 			
-			#${COMPILER_AAS_SOURCES}
-			#${COMPILER_DMAP_SOURCES}
+			${COMPILER_AAS_SOURCES}
+			${COMPILER_DMAP_SOURCES}
 			#${COMPILER_RENDERBUMP_SOURCES}
 			#${COMPILER_ROQVQ_SOURCES}
 			)

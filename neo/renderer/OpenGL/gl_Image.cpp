@@ -59,8 +59,7 @@ void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int 
 		
 		int padW = ( opts.width + 3 ) & ~3;
 		int padH = ( opts.height + 3 ) & ~3;
-		( void )padH;
-		( void )padW;
+		
 		assert( x + width <= padW && y + height <= padH );
 		// upload the non-aligned value, OpenGL understands that there
 		// will be padding
@@ -112,7 +111,7 @@ void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int 
 #endif
 	if( IsCompressed() )
 	{
-		glCompressedTexSubImage2DARB( uploadTarget, mipLevel, x, y, width, height, internalFormat, compressedSize, pic );
+		glCompressedTexSubImage2D( uploadTarget, mipLevel, x, y, width, height, internalFormat, compressedSize, pic );
 	}
 	else
 	{
