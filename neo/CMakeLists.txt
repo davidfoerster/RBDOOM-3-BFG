@@ -21,6 +21,12 @@ option(FFMPEG
 option(ONATIVE
 		"Optimize for the host CPU" ON)
 
+option(USE_SYSTEM_ZLIB
+                "Use the system zlib instead of the bundled one" OFF)
+
+option(USE_SYSTEM_LIBPNG
+                "Use the system libpng instead of the bundled one" OFF)
+
 if(UNIX)
 	set(OPENAL TRUE)
 endif()
@@ -179,6 +185,30 @@ endif()
 #if(STANDALONE)
 #	add_definitions(-DSTANDALONE)
 #endif()
+
+if (USE_SYSTEM_ZLIB)
+  find_package(ZLIB REQUIRED)
+endif(USE_SYSTEM_ZLIB)
+
+if (ZLIB_FOUND)
+    include_directories(${ZLIB_INCLUDE_DIRS})
+    set(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+else (ZLIB_FOUND)
+    include_directories("libs/zlib")
+    set(ZLIB_LIBRARY "" )
+endif (ZLIB_FOUND)
+
+if(USE_SYSTEM_LIBPNG)
+find_package(PNG REQUIRED)
+endif (USE_SYSTEM_LIBPNG)
+
+if (PNG_FOUND)
+    include_directories(${PNG_INCLUDE_DIRS})
+    set(PNG_LIBRARY ${PNG_LIBRARIES})
+else (PNG_FOUND)
+    include_directories("libs/png")
+    set(PNG_LIBRARY "" )
+endif (PNG_FOUND)
 
 add_subdirectory(idlib)
 
@@ -377,11 +407,22 @@ set(JPEG_SOURCES
 	libs/jpeg-6/jquant2.cpp
 	libs/jpeg-6/jutils.cpp)
 
-file(GLOB PNG_INCLUDES libs/png/*.h)
-file(GLOB PNG_SOURCES libs/png/*.c)
+if (NOT PNG_FOUND)
+    file(GLOB PNG_INCLUDES libs/png/*.h)
+    file(GLOB PNG_SOURCES libs/png/*.c)
+else (NOT PNG_FOUND)
+    set(PNG_INCLUDES "")
+    set(PNG_SOURCES "")
+endif (NOT PNG_FOUND)
 
+if (NOT ZLIB_FOUND)
 file(GLOB ZLIB_INCLUDES libs/zlib/*.h)
 file(GLOB ZLIB_SOURCES libs/zlib/*.c)
+else (NOT ZLIB_FOUND)
+  set(ZLIB_INCLUDES "")
+  set(ZLIB_SOURCES "")
+endif (NOT ZLIB_FOUND)
+
 
 file(GLOB MINIZIP_INCLUDES libs/zlib/minizip/*.h)
 file(GLOB MINIZIP_SOURCES libs/zlib/minizip/*.c libs/zlib/minizip/*.cpp)
@@ -1135,7 +1176,7 @@ include_directories(
 			#libs/openal/include
 			libs/glew/include
 			#libs/freetype/include
-			libs/zlib)
+            )
 			
 #link_directories(
 #			${CMAKE_CURRENT_SOURCE_DIR}/libs/curl/lib
@@ -1313,6 +1354,8 @@ if(MSVC)
 		wsock32.lib
 		${OpenAL_LIBRARIES}
 		${FFmpeg_LIBRARIES}
+        ${ZLIB_LIBRARY}
+        ${PNG_LIBRARY}
 		)
 		
 	#CMAKE_BINARY_DIR
@@ -1474,6 +1517,8 @@ else()
 			${SDLx_LIBRARY}
 			${OPENAL_LIBRARY}
 			${FFMPEG_LIBRARIES}
+            ${ZLIB_LIBRARY}
+            ${PNG_LIBRARY}
 			)
 	endif()
     
