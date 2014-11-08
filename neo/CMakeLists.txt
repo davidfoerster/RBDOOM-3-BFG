@@ -30,6 +30,9 @@ option(USE_SYSTEM_LIBPNG
 option(USE_SYSTEM_LIBJPEG
                 "Use the system libjpeg instead of the bundled one" ON)
 
+option(USE_SYSTEM_LIBGLEW
+		"Use the system libglew instead of the bundled one" OFF)
+
 if(UNIX)
 	set(OPENAL TRUE)
 endif()
@@ -56,7 +59,6 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 	add_definitions(-Werror=format-security)
 	add_definitions(-Werror=format)
 	add_definitions(-mmmx -msse -msse2)
-
 	if(WIN32)
 		# require msvcr70.dll or newer for _aligned_malloc etc
 		# I think it is from Visual C++ .NET 2002, so it should be available on any remotely modern system.
@@ -445,22 +447,37 @@ else (NOT ZLIB_FOUND)
   set(ZLIB_SOURCES "")
 endif (NOT ZLIB_FOUND)
 
-
 file(GLOB MINIZIP_INCLUDES libs/zlib/minizip/*.h)
 file(GLOB MINIZIP_SOURCES libs/zlib/minizip/*.c libs/zlib/minizip/*.cpp)
-	
-set(GLEW_INCLUDES
-	libs/glew/include/GL/glew.h)
-	
-if(WIN32)
-	set(GLEW_INCLUDES ${GLEW_INCLUDES} libs/glew/include/GL/wglew.h)
-else()
-	set(GLEW_INCLUDES ${GLEW_INCLUDES} libs/glew/include/GL/glxew.h)
-endif()
-	
-set(GLEW_SOURCES
-	libs/glew/src/glew.c)
-	
+
+if(USE_SYSTEM_LIBGLEW)
+find_package(GLEW 1.10 REQUIRED)
+endif(USE_SYSTEM_LIBGLEW)
+
+if (GLEW_FOUND)
+	include_directories(${GLEW_INCLUDE_DIRS})
+	set(GLEW_LIBRARY GLEW)
+	set(GLEW_SOURCES "")
+	set(GLEW_INCLUDES "")
+else (GLEW_FOUND)
+	set(GLEW_INCLUDES
+		libs/glew/include/GL/glew.h)
+
+	if(WIN32)
+		set(GLEW_INCLUDES ${GLEW_INCLUDES} libs/glew/include/GL/wglew.h)
+	else(WIN32)
+		set(GLEW_INCLUDES ${GLEW_INCLUDES} libs/glew/include/GL/glxew.h)
+	endif(WIN32)
+
+	set(GLEW_SOURCES
+		libs/glew/src/glew.c)
+
+	include_directories("libs/glew/include")
+	add_definitions(-DGLEW_STATIC)
+	add_library(glew ${GLEW_SOURCES} ${GLEW_INCLUDES})
+	set(GLEW_LIBRARY "")
+endif (GLEW_FOUND)
+
 set(FREETYPE_SOURCES
 	libs/freetype/src/autofit/autofit.c
 	libs/freetype/src/bdf/bdf.c
@@ -1164,7 +1181,6 @@ set(RBDOOM3_SOURCES
 add_definitions(-DUSE_DOOMCLASSIC)
 
 add_definitions(-D__DOOM__
-				-DGLEW_STATIC
 				#-DBUILD_FREETYPE
 				#-DFT2_BUILD_LIBRARY
 				)
@@ -1196,7 +1212,6 @@ include_directories(
 			idlib
 			#libs/curl/include
 			#libs/openal/include
-			libs/glew/include
 			#libs/freetype/include
             )
 			
@@ -1376,9 +1391,10 @@ if(MSVC)
 		wsock32.lib
 		${OpenAL_LIBRARIES}
 		${FFmpeg_LIBRARIES}
-        ${ZLIB_LIBRARY}
-        ${PNG_LIBRARY}
-        ${JPEG_LIBRARY}
+		${ZLIB_LIBRARY}
+		${PNG_LIBRARY}
+		${JPEG_LIBRARY}
+		${GLEW_LIBRARY}
 		)
 		
 	#CMAKE_BINARY_DIR
@@ -1540,9 +1556,10 @@ else()
 			${SDLx_LIBRARY}
 			${OPENAL_LIBRARY}
 			${FFMPEG_LIBRARIES}
-            ${ZLIB_LIBRARY}
-            ${PNG_LIBRARY}
-            ${JPEG_LIBRARY}
+			${ZLIB_LIBRARY}
+			${PNG_LIBRARY}
+			${JPEG_LIBRARY}
+			${GLEW_LIBRARY}
 			)
 	endif()
     
