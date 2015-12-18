@@ -35,7 +35,7 @@ This file contains the following sections:
 	
 	7) INSTALLATION, GETTING THE GAMEDATA, RUNNING THE GAME
 	
-	8) CHANGES
+	8) OVERALL CHANGES
 	
 	9) CONSOLE VARIABLES
 	
@@ -43,7 +43,9 @@ This file contains the following sections:
 	
 	11) BUG REPORTS
 	
-	12) CODE LICENSE EXCEPTIONS
+	12) GAME MODIFICATIONS
+	
+	13) CODE LICENSE EXCEPTIONS
 
 
 
@@ -101,20 +103,6 @@ Back End Rendering of Stencil Shadows:
 The Doom 3 BFG Edition GPL Source Code release does not include functionality enabling rendering
 of stencil shadows via the "depth fail" method, a functionality commonly known as "Carmack's Reverse".
 
-
-Mods:
------
-
-The Doom 3 BFG Edition GPL Source Code release allow mod editing, in order for it to accept any change in your
-mod directory, you should first specify your mod directory adding the following command to the launcher:
-
-"+set fs_game modDirectoryName"
-
-as well as force the content of your mod directory over the content of the game with the following command:
-
-"+set fs_resourceLoadPriority 0"
-
-so it would end up looking like: RBDoom3BFG +set fs_resourceLoadPriority 0 +set fs_game mymod
 
 
 _______________________________
@@ -174,13 +162,17 @@ _________________________
  
 	On Debian or Ubuntu:
 
-		> apt-get install cmake libsdl1.2-dev libopenal-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
+		> apt-get install cmake libsdl2-dev libopenal-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
 	
 	On Fedora
 
 		// TODO add ffmpeg libs for bink videos
 		
 		> yum install cmake SDL-devel openal-devel
+	
+	On ArchLinux 
+	
+		> sudo pacman -S sdl2 ffmpeg openal cmake
 	
 	On openSUSE (tested in 13.1)
 	
@@ -190,7 +182,7 @@ _________________________
 		"libffmpeg1-devel" requires the PackMan repository. If you don't have that repo, and don't want to add it, remove the "libffmpeg1-devel" option and compile without ffmpeg support.
 		If you have the repo and compiles with ffmpeg support, make sure you download "libffmpeg1-devel", and not "libffmpeg-devel".
 	
-	Instead of SDL1.2 development files you can also use SDL2. Install SDL 2.0 and add to the cmake parameters -DSDL2=ON
+	Instead of SDL2 development files you can also use SDL1.2. Install SDL 1.2 and add to the cmake parameters -DSDL2=OFF
 	
 	SDL2 has better input support (especially in the console) and better 
 	support for multiple displays (especially in fullscreen mode).
@@ -230,6 +222,22 @@ Fortunately, you can run Steam in Wine to install Doom3 BFG and afterwards copy 
 game data somewhere else to use it with native executables.
 Winetricks ( http://winetricks.org/ ) makes installing Windows Steam on Linux really easy.
 
+If using the Linux version of Steam, you can open the console (launch steam with -console or try steam://open/console in a web browser) and enter the following:
+	download_depot 208200 208202
+This will download the base game files to a path similar to (the path cannot be configured):
+	~/.steam/root/ubuntu12_32/steamapps/content/app_208200/depot_208202/
+Steam will not provide feedback on the download progress so you will have to watch the folder.
+You will also have to run download_depot for your language:
+	download_depot 208200 <language depot>
+	Where <language depot> is:
+		English: 208203
+		German: 208204
+		French: 208205
+		Italian: 208206
+		Spanish: 208207
+		Japanese: 208208
+Combining the contents of both depots will provide the necessary game files for the engine.
+
 Anyway:
 
 1. Install Doom 3 BFG in Steam (Windows version), make sure it's getting 
@@ -268,7 +276,7 @@ Anyway:
 
 ___________________________________________________
 
-8) CHANGES
+8) OVERALL CHANGES
 __________________________________________
 
 - Flexible build system using CMake
@@ -283,6 +291,8 @@ __________________________________________
 
 - Bink video support through FFmpeg
 
+- PNG image support
+
 - Soft shadows using PCF hardware shadow mapping
 
 	The implementation uses sampler2DArrayShadow and PCF which usually
@@ -291,7 +301,7 @@ __________________________________________
 	All 3 light types are supported which means parallel lights (sun) use
 	scene independent cascaded shadow mapping.
 	The implementation is very fast with single taps (400 fps average per
-	scene on a GTX 660 ti OC) however I defaulted it to 16 taps so the shadows look
+	scene on a GTX 660 ti OC) however I defaulted it to 12 taps using a Poisson disc algorithm so the shadows look
 	really good which should give you stable 100 fps on todays hardware (2014).
 
 - Changed light interaction shaders to use Half-Lambert lighting like in Half-Life 2 to 
@@ -340,15 +350,35 @@ If you want to report an issue with the game, you should make sure that your rep
     * If you are sending a console log, make sure to enable developer output:
 
               RBDoom3BFG.exe +set developer 1 +set logfile 2
+			  
+		You can find your qconsole.log on Windows in C:\Users\<your user name>\Saved Games\id Software\RBDOOM 3 BFG\base\
 
 NOTE: We cannot help you with OS-specific issues like configuring OpenGL correctly, configuring ALSA or configuring the network.
 	
 
+___________________________________________________
+
+12) GAME MODIFCATIONS
+__________________________________________
 	
+The Doom 3 BFG Edition GPL Source Code release allows mod editing, in order for it to accept any change in your
+mod directory, you should first specify your mod directory adding the following command to the launcher:
+
+"+set fs_game modDirectoryName"
+
+as well as force the content of your mod directory over the content of the game with the following command:
+
+"+set fs_resourceLoadPriority 0"
+
+so it would end up looking like: RBDoom3BFG +set fs_resourceLoadPriority 0 +set fs_game modDirectoryName
+
+
+IMPORTANT: RBDOOM-3-BFG does not support old Doom 3 modiciations that include sourcecode modifications in binary form (.dll)
+You can fork RBDOOM-3-BFG and create a new renamed binary that includes all required C++ game code modifications.
 	
 ____________________________________________________________________________________
 
-12) CODE LICENSE EXCEPTIONS - The parts that are not covered by the GPL:
+13) CODE LICENSE EXCEPTIONS - The parts that are not covered by the GPL:
 _______________________________________________________________________
 
 

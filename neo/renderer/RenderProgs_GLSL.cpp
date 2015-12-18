@@ -812,19 +812,19 @@ const char* vertexInsert_GLSL_ES_1_0 =
 const char* vertexInsert_GLSL_ES_1_0 =
 {
 	"#version 100\n"
-
+	
 #if !defined(USE_MESA)
 	"#define GLES2\n"
 #endif
-
+	
 	"#define PC\n"
-
+	
 #if 1 //defined(__ANDROID__)
 	"precision mediump float;\n"
 #else
 	"precision highp float;\n"
 #endif
-
+	
 #if defined(USE_GPU_SKINNING) && !defined(__ANDROID__)
 	"#extension GL_ARB_gpu_shader5 : enable\n"
 #endif
@@ -915,13 +915,13 @@ const char* fragmentInsert_GLSL_ES_1_0 =
 const char* fragmentInsert_GLSL_ES_1_0 =
 {
 	"#version 100\n"
-
+	
 #if !defined(USE_MESA)
 	"#define GLES2\n"
 #endif
-
+	
 	"#define PC\n"
-
+	
 #if 1 //defined(__ANDROID__)
 	"precision mediump float;\n"
 	//"#extension GL_OES_standard_derivatives : enable\n"
@@ -971,6 +971,13 @@ const char* fragmentInsert_GLSL_ES_3_00 =
 	"#version 300 es\n"
 	"#define PC\n"
 	"precision mediump float;\n"
+	"precision lowp sampler2D;\n"
+	"precision lowp sampler2DShadow;\n"
+	"precision lowp sampler2DArray;\n"
+	"precision lowp sampler2DArrayShadow;\n"
+	"precision lowp samplerCube;\n"
+	"precision lowp samplerCubeShadow;\n"
+	"precision lowp sampler3D;\n"
 	"\n"
 	"void clip( float v ) { if ( v < 0.0 ) { discard; } }\n"
 	"void clip( vec2 v ) { if ( any( lessThan( v, vec2( 0.0 ) ) ) ) { discard; } }\n"
@@ -1137,10 +1144,10 @@ void ParseInOutStruct( idLexer& src, int attribType, int attribIgnoreType, idLis
 		// RB: ignore reserved builtin gl_ uniforms
 		switch( glConfig.driverType )
 		{
-				//case GLDRV_OPENGL32_CORE_PROFILE:
-				//case GLDRV_OPENGL_ES2:
-				//case GLDRV_OPENGL_ES3:
-				//case GLDRV_OPENGL_MESA:
+			//case GLDRV_OPENGL32_CORE_PROFILE:
+			//case GLDRV_OPENGL_ES2:
+			//case GLDRV_OPENGL_ES3:
+			//case GLDRV_OPENGL_MESA:
 			default:
 			{
 				for( int i = 0; attribsPC[i].semantic != NULL; i++ )

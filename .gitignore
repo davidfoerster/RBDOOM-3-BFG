@@ -2,3 +2,11 @@ build*
 eclipse*
 neo/ipch
 dist/
+
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+HTML/
+neo/.kdev4
+neo/neo.kdev4
