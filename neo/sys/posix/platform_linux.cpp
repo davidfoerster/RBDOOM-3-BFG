@@ -63,13 +63,14 @@ const char* Sys_EXEPath()
 	/*
 	 * Unfortunately procfs entries usually report to have size 0, so we cannot
 	 * lstat(2) to determine the right size and need to rely on probing with
-	 * readlink(2) until it places less than bufsize bytes in the buffer.
+	 * readlink(2) until it places strictly less than bufsize bytes in the
+	 * buffer.
 	 */
 	ssize_t len = 0;
 	for( size_t bufsize = 1 << 8; len >= 0 && bufsize <= 1 << 20; bufsize <<= 1 )
 	{
 		char *buf = new char[ bufsize ];
-		len = readlink( "/proc/self/exe", buf, bufsize );
+		len = readlink( "/proc/self/exe", buf, bufsize - 1 );
 		if( len >= 0 && static_cast<size_t>( len ) < bufsize )
 		{
 			buf[ len ] = '\0';
