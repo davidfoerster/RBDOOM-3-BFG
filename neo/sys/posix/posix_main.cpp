@@ -61,6 +61,17 @@ If you have questions concerning this license or the applicable additional terms
 #define					MAX_OSPATH 256
 #define					COMMAND_HISTORY 64
 
+
+namespace
+{
+	template<typename T>
+	inline T ignore_result( T x )
+	{
+		return x;
+	}
+}
+
+
 static idStr			basepath;
 static idStr			savepath;
 
@@ -1087,24 +1098,24 @@ void tty_Del()
 {
 	char key;
 	key = '\b';
-	write( STDOUT_FILENO, &key, 1 );
+	ignore_result( write( STDOUT_FILENO, &key, 1 ) );
 	key = ' ';
-	write( STDOUT_FILENO, &key, 1 );
+	ignore_result( write( STDOUT_FILENO, &key, 1 ) );
 	key = '\b';
-	write( STDOUT_FILENO, &key, 1 );
+	ignore_result( write( STDOUT_FILENO, &key, 1 ) );
 }
 
 void tty_Left()
 {
 	char key = '\b';
-	write( STDOUT_FILENO, &key, 1 );
+	ignore_result( write( STDOUT_FILENO, &key, 1 ) );
 }
 
 void tty_Right()
 {
 	char key = 27;
-	write( STDOUT_FILENO, &key, 1 );
-	write( STDOUT_FILENO, "[C", 2 );
+	ignore_result( write( STDOUT_FILENO, &key, 1 ) );
+	ignore_result( write( STDOUT_FILENO, "[C", 2 ) );
 }
 
 // clear the display of the line currently edited
@@ -1152,8 +1163,8 @@ void tty_Show()
 		char* buf = input_field.GetBuffer();
 		if( buf[0] )
 		{
-			write( STDOUT_FILENO, buf, strlen( buf ) );
-			
+			ignore_result( write( STDOUT_FILENO, buf, strlen( buf ) ) );
+
 			// RB begin
 #if defined(__ANDROID__)
 			//__android_log_print(ANDROID_LOG_DEBUG, "RBDoom3_DEBUG", "%s", buf);
@@ -1217,7 +1228,7 @@ char* Posix_ConsoleInput()
 					idStr::Copynz( input_ret, input_field.GetBuffer(), sizeof( input_ret ) );
 					assert( hidden );
 					tty_Show();
-					write( STDOUT_FILENO, &key, 1 );
+					ignore_result( write( STDOUT_FILENO, &key, 1 ) );
 					input_field.Clear();
 					if( history_count < COMMAND_HISTORY )
 					{
