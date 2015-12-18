@@ -10,7 +10,7 @@ Package: doom3-bf-build-reqs
 # Version: <enter version here; defaults to 1.0>
 # Maintainer: Your Name <yourname@example.com>
 # Pre-Depends: <comma-separated list of packages>
-Depends: cmake, libsdl1.2-dev | libsdl2-dev, libopenal-dev, libavcodec-dev, libavutil-dev, libavformat-dev, libswscale-dev
+Depends: cmake, libsdl2-dev, libopenal-dev, libavcodec-dev, libavutil-dev, libavformat-dev, libswscale-dev, libjpeg-dev, libpng-dev, libz-dev, libglew-dev
 # Recommends: <comma-separated list of packages>
 # Suggests: <comma-separated list of packages>
 # Provides: <comma-separated list of packages>
