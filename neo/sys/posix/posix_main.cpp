@@ -58,7 +58,6 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "posix_public.h"
 
-#define					MAX_OSPATH 256
 #define					COMMAND_HISTORY 64
 
 static idStr			basepath;
