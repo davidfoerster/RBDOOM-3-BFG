@@ -375,13 +375,6 @@ Sys_Milliseconds
    assuming this wraps every 0x7fffffff - ~68 years since the Epoch (1970) - we're safe till 2038
    using unsigned long data type to work right with Sys_XTimeToSysTime */
 
-#ifdef CLOCK_MONOTONIC_RAW
-// use RAW monotonic clock if available (=> not subject to NTP etc)
-#define D3_CLOCK_TO_USE CLOCK_MONOTONIC_RAW
-#else
-#define D3_CLOCK_TO_USE CLOCK_MONOTONIC
-#endif
-
 // RB: changed long to int
 unsigned int sys_timeBase = 0;
 // RB end
@@ -397,7 +390,7 @@ int Sys_Milliseconds()
 	int curtime;
 	struct timespec ts;
 
-	clock_gettime( D3_CLOCK_TO_USE, &ts );
+	clock_gettime( supported_uniform_clock, &ts );
 
 	if( !sys_timeBase )
 	{
@@ -463,7 +456,7 @@ uint64 Sys_Microseconds()
 	uint64 curtime;
 	struct timespec ts;
 
-	clock_gettime( D3_CLOCK_TO_USE, &ts );
+	clock_gettime( supported_uniform_clock, &ts );
 
 	if( !sys_microTimeBase )
 	{
