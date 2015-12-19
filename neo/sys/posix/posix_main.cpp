@@ -370,19 +370,21 @@ double MeasureClockTicks()
 Sys_Milliseconds
 ================
 */
-/* base time in seconds, that's our origin
+
+int Sys_Milliseconds()
+{
+	/* base time in seconds, that's our origin
    timeval:tv_sec is an int:
    assuming this wraps every 0x7fffffff - ~68 years since the Epoch (1970) - we're safe till 2038
    using unsigned long data type to work right with Sys_XTimeToSysTime */
 
-static time_t sys_timeBase = 0;
-/* current time in ms, using sys_timeBase as origin
-   NOTE: sys_timeBase*1000 + curtime -> ms since the Epoch
-     0x7fffffff ms - ~24 days
-		 or is it 48 days? the specs say int, but maybe it's casted from unsigned int?
-*/
-int Sys_Milliseconds()
-{
+	static time_t sys_timeBase = 0;
+	/* current time in ms, using sys_timeBase as origin
+	   NOTE: sys_timeBase*1000 + curtime -> ms since the Epoch
+	     0x7fffffff ms - ~24 days
+			 or is it 48 days? the specs say int, but maybe it's casted from unsigned int?
+	*/
+
 	// DG: use clock_gettime on all platforms
 #if 1
 	int curtime;
@@ -427,10 +429,10 @@ int Sys_Milliseconds()
 Sys_Microseconds
 ================
 */
-static time_t sys_microTimeBase = 0;
-
 uint64 Sys_Microseconds()
 {
+	static time_t sys_microTimeBase = 0;
+
 #if 0
 	static uint64 ticksPerMicrosecondTimes1024 = 0;
 
