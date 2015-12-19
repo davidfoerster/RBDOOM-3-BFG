@@ -232,6 +232,54 @@ void Sys_FPE_handler( int signum, siginfo_t* info, void* context )
 	Sys_Printf( "FPE\n" );
 }
 
+
+#if _POSIX_TIMERS && defined( _POSIX_MONOTONIC_CLOCK )
+	typedef struct timespec tickcount_t;
+
+	const static clockid_t supported_uniform_clock =
+		#ifdef CLOCK_MONOTONIC_RAW
+			(clock_getres( CLOCK_MONOTONIC_RAW, nullptr ) == 0) ? CLOCK_MONOTONIC_RAW :
+		#endif
+			CLOCK_MONOTONIC;
+#else
+	typedef uint64_t tickcount_t;
+#endif
+
+void Sys_GetClockTicksI( tickcount_t *tc )
+{
+	#if _POSIX_TIMERS && defined( _POSIX_MONOTONIC_CLOCK )
+		int rv = clock_gettime( supported_uniform_clock, tc );
+		assert( rv == 0 );
+	#elif defined( __i386__ )
+		uint32_t lo, hi;
+
+		__asm__ __volatile__(
+			"push %%ebx\n"			\
+			"mfence\n"					\
+			"rdtsc\n"					\
+			"mov %%eax,%0\n"			\
+			"mov %%edx,%1\n"			\
+			"pop %%ebx\n"
+			: "=r"( lo ), "=r"( hi ) );
+
+		*tc = lo | (static_cast<tickcount_t>(hi) << (sizeof(lo) * CHAR_BIT));
+	#else
+		#error No supported uniform timer
+	#endif
+}
+
+
+inline
+double tickcount2double( const tickcount_t *tc )
+{
+	#if _POSIX_TIMERS && defined( _POSIX_MONOTONIC_CLOCK )
+		return tc->tv_sec * 1e9 + tc->tv_nsec;
+	#else
+		return *tc;
+	#endif
+}
+
+
 /*
 ===============
 Sys_GetClockticks
@@ -239,30 +287,71 @@ Sys_GetClockticks
 */
 double Sys_GetClockTicks()
 {
-#if defined( __i386__ )
-	unsigned long lo, hi;
-
-	__asm__ __volatile__(
-		"push %%ebx\n"			\
-		"xor %%eax,%%eax\n"		\
-		"cpuid\n"					\
-		"rdtsc\n"					\
-		"mov %%eax,%0\n"			\
-		"mov %%edx,%1\n"			\
-		"pop %%ebx\n"
-		: "=r"( lo ), "=r"( hi ) );
-	return ( double ) lo + ( double ) 0xFFFFFFFF * hi;
-#else
-//#error unsupported CPU
-// RB begin
-	struct timespec now;
-
-	clock_gettime( CLOCK_MONOTONIC, &now );
-
-	return now.tv_sec * 1000000000LL + now.tv_nsec;
-// RB end
-#endif
+	tickcount_t tc;
+	Sys_GetClockTicksI( &tc );
+	return tickcount2double( &tc );
 }
+
+
+/*
+ * Subtract the "truct timespec" values X and Y, storing the result in RESULT.
+ *
+ * (adapted from "timeval_subtract" found at
+ * https://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html)
+ */
+struct timespec *timespec_subtract ( struct timespec *result,
+	const struct timespec *_x, const struct timespec *_y )
+{
+	const static long NANOS = 1000L * 1000L * 1000L;
+	struct timespec x = *_x, y = *_y;
+
+  /* Perform the carry for the later subtraction by updating y. */
+  if (x.tv_nsec < y.tv_nsec)
+  {
+    long nsec = (y.tv_nsec - x.tv_nsec) / NANOS + 1;
+    y.tv_nsec -= NANOS * nsec;
+    y.tv_sec += nsec;
+  }
+  if (x.tv_nsec - y.tv_nsec > NANOS)
+  {
+    long nsec = (x.tv_nsec - y.tv_nsec) / NANOS;
+    y.tv_nsec += NANOS * nsec;
+    y.tv_sec -= nsec;
+  }
+
+  // Compute the time difference.
+  // tv_nsec is certainly positive.
+  result->tv_sec = x.tv_sec - y.tv_sec;
+  result->tv_nsec = x.tv_nsec - y.tv_nsec;
+
+  return result;
+}
+
+
+inline
+tickcount_t *tickcount_subtract( tickcount_t *result,
+	const tickcount_t *x, const tickcount_t *y )
+{
+	#if _POSIX_TIMERS && defined( _POSIX_MONOTONIC_CLOCK )
+		return timespec_subtract( result, x, y );
+	#else
+		*result = *x - *y;
+		return result;
+	#endif
+}
+
+
+tickcount_t *MeasureClockTicksI( tickcount_t *tc )
+{
+	tickcount_t t0, t1;
+
+	Sys_GetClockTicksI( &t0 );
+	Sys_Sleep( 1000 );
+	Sys_GetClockTicksI( &t1 );
+
+	return tickcount_subtract( tc, &t1, &t0 );
+}
+
 
 /*
 ===============
@@ -271,12 +360,9 @@ MeasureClockTicks
 */
 double MeasureClockTicks()
 {
-	double t0, t1;
-
-	t0 = Sys_GetClockTicks( );
-	Sys_Sleep( 1000 );
-	t1 = Sys_GetClockTicks( );
-	return t1 - t0;
+	tickcount_t tc;
+	MeasureClockTicksI( &tc );
+	return tickcount2double( &tc );
 }
 
 /*
