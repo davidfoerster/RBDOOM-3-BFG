@@ -375,9 +375,7 @@ Sys_Milliseconds
    assuming this wraps every 0x7fffffff - ~68 years since the Epoch (1970) - we're safe till 2038
    using unsigned long data type to work right with Sys_XTimeToSysTime */
 
-// RB: changed long to int
-unsigned int sys_timeBase = 0;
-// RB end
+static time_t sys_timeBase = 0;
 /* current time in ms, using sys_timeBase as origin
    NOTE: sys_timeBase*1000 + curtime -> ms since the Epoch
      0x7fffffff ms - ~24 days
@@ -398,7 +396,7 @@ int Sys_Milliseconds()
 		return ts.tv_nsec / 1000000;
 	}
 
-	curtime = ( ts.tv_sec - sys_timeBase ) * 1000 + ts.tv_nsec / 1000000;
+	curtime = ( ts.tv_sec - sys_timeBase ) * 1000L + ts.tv_nsec / 1000000;
 
 	return curtime;
 #else
@@ -429,7 +427,7 @@ int Sys_Milliseconds()
 Sys_Microseconds
 ================
 */
-static uint64 sys_microTimeBase = 0;
+static time_t sys_microTimeBase = 0;
 
 uint64 Sys_Microseconds()
 {
@@ -464,7 +462,7 @@ uint64 Sys_Microseconds()
 		return ts.tv_nsec / 1000;
 	}
 
-	curtime = ( ts.tv_sec - sys_microTimeBase ) * 1000000 + ts.tv_nsec / 1000;
+	curtime = static_cast<uint64>( ts.tv_sec - sys_microTimeBase ) * 1000000 + ts.tv_nsec / 1000;
 
 	return curtime;
 #endif
@@ -1231,7 +1229,7 @@ void tty_Show()
 		if( buf[0] )
 		{
 			write( STDOUT_FILENO, buf, strlen( buf ) );
-			
+
 			// RB begin
 #if defined(__ANDROID__)
 			//__android_log_print(ANDROID_LOG_DEBUG, "RBDoom3_DEBUG", "%s", buf);
